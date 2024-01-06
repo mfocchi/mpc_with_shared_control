@@ -13,8 +13,8 @@ params.obstacle_avoidance = false;
 params.mpc_N = 30;
 params.omega_max = 5.;
 params.omega_min = -5.;
-params.v_max = 0.5;
-params.v_min = -0.5;
+params.v_max = 1;
+params.v_min = -1;
 params.obstacle_pos = [0.5; 0.25];
 params.obstacle_radius = 0.2;
 
@@ -68,8 +68,7 @@ for i=start_mpc:samples
     local_ref = ref(:,i:i+params.mpc_N-1);      
     fprintf("Iteration #: %d\n", i)
     
-    solution = mpc_fun_handler(actual_state, actual_t, local_ref, v_vec0, omega_vec0, params);% bootstrap  delta_Fr_l, delta_Fr_r);
-    
+    solution = mpc_fun_handler(actual_state, actual_t, local_ref, v_vec0, omega_vec0, params);
     % 
     % 1 First-order optimality measure was less than options.OptimalityTolerance, and maximum constraint violation was less than options.ConstraintTolerance.
     % 0 Number of iterations exceeded options.MaxIterations or number of function evaluations exceeded options.MaxFunctionEvaluations.
@@ -92,9 +91,7 @@ for i=start_mpc:samples
     v = solution.x(1:params.mpc_N);
     omega = solution.x(params.mpc_N+1:2*params.mpc_N);
         
-    % predict new state vector with the optimal v, omega profiles
-    [mpc_states, mpc_time] = computeRollout(actual_state, actual_t,params.mpc_dt, params.mpc_N, v, omega, params);            
-     
+
     %update dynamics (this emulates the real dynamics with noise)
     [actual_state, actual_t] = integrate_dynamics(actual_state ,actual_t, params.mpc_dt/(params.int_steps-1), params.int_steps, v(1)*ones(1,params.int_steps),  omega(1)*ones(1,params.int_steps), params); 
 
@@ -109,29 +106,29 @@ for i=start_mpc:samples
     % plot states
     subplot(3,2,1)    
     plot(ref_time(start_mpc:end), ref(1, start_mpc:end), 'ro-'); grid on;hold on;
-    plot(mpc_time, mpc_states(1,:), 'bo-'); grid on;hold on; ylabel('X')
+    plot(solution.mpc_time, solution.mpc_states(1,:), 'bo-'); grid on;hold on; ylabel('X')
     
     subplot(3,2,3)       
     plot(ref_time(start_mpc:end), ref(2, start_mpc:end), 'ro-'); grid on;hold on;
-    plot(mpc_time, mpc_states(2,:), 'bo-'); grid on;hold on; ylabel('Y')
+    plot(solution.mpc_time, solution.mpc_states(2,:), 'bo-'); grid on;hold on; ylabel('Y')
     
     subplot(3,2,5)   
     plot(ref_time(start_mpc:end), ref(3, start_mpc:end), 'ro-'); grid on;hold on;
-    plot(mpc_time, mpc_states(3,:), 'bo-'); grid on;hold on;  ylabel('theta')
+    plot(solution.mpc_time, solution.mpc_states(3,:), 'bo-'); grid on;hold on;  ylabel('theta')
     
     subplot(3,2,2)           
-    plot(mpc_time, v, 'go-'); grid on;hold on;  ylabel('v'); grid on;hold on;  
-    xlim([min(mpc_time), max(mpc_time)]);
-        plot(mpc_time, ones(1,length(mpc_time))*params.v_min, 'r'); grid on;hold on;  
-    plot(mpc_time, ones(1,length(mpc_time))*(params.v_max), 'r'); grid on;hold on;  
+    plot(solution.mpc_time, v, 'go-'); grid on;hold on;  ylabel('v'); grid on;hold on;  
+    xlim([min(solution.mpc_time), max(solution.mpc_time)]);
+        plot(solution.mpc_time, ones(1,length(solution.mpc_time))*params.v_min, 'r'); grid on;hold on;  
+    plot(solution.mpc_time, ones(1,length(solution.mpc_time))*(params.v_max), 'r'); grid on;hold on;  
 
     legend({'v','min', 'max'});
 
     subplot(3,2,4)   
-    plot(mpc_time, omega, 'bo-'); grid on;hold on;  ylabel('omega'); grid on;hold on;
-    xlim([min(mpc_time), max(mpc_time)]);
-    plot(mpc_time, ones(1,length(mpc_time))*params.omega_min, 'r'); grid on;hold on;  
-    plot(mpc_time, ones(1,length(mpc_time))*(params.omega_max), 'r'); grid on;hold on;  
+    plot(solution.mpc_time, omega, 'bo-'); grid on;hold on;  ylabel('omega'); grid on;hold on;
+    xlim([min(solution.mpc_time), max(solution.mpc_time)]);
+    plot(solution.mpc_time, ones(1,length(solution.mpc_time))*params.omega_min, 'r'); grid on;hold on;  
+    plot(solution.mpc_time, ones(1,length(solution.mpc_time))*(params.omega_max), 'r'); grid on;hold on;  
     legend({'omega','min', 'max'});
 
        
