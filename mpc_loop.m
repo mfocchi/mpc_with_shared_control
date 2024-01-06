@@ -23,8 +23,8 @@ params.mpc_dt = 0.1;
 constr_tolerance = 1e-3;
 dt=0.1; % only to evaluate solution
 
-v_d = 0.1;
-omega_d= 0.1;
+params.v_d = 0.1;
+params.omega_d= 0.1;
 sim_duration = 10;
 v_vec0 = zeros(1,params.mpc_N);
 omega_vec0 = zeros(1,params.mpc_N);
@@ -36,8 +36,10 @@ params.w1 =1; % tracking x
 params.w2 =2; % tracking x
 params.w3= 0.1; % tracking theta
 params.w4= 0.01; % smooth term 
+params.w5= 0.1; % lin speed term 
 
-[ref_state,ref_time]  = genReference(p0, v_d, omega_d, dt, sim_duration/dt);
+
+[ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
 
 samples = length(ref_state) - params.mpc_N+1;
 start_mpc = 1;
@@ -150,7 +152,7 @@ for i=start_mpc:samples
     legend({'omega','min', 'max'});
 
        
-    pause(0.05);
+    pause(0.3);
     
      
 end

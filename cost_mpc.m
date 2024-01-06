@@ -23,7 +23,9 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, params)
     tracking_x= sum (vecnorm(local_ref(1,:)- states(1,:), norm_order).^2);    
     tracking_y= sum (vecnorm(local_ref(2,:)- states(2,:), norm_order).^2);    
     tracking_theta= sum (vecnorm(local_ref(3,:) - states(3,:), norm_order).^2); 
-      
+    tracking_lin_speed= sum ( vecnorm( params.v_d*ones(1,params.mpc_N) -  v_vec, norm_order).^2 ); 
+   
+
     % smoothnes: minimize jerky control action
     smoothing_speed = sum(diff(v_vec).^2)+ sum(diff(omega_vec).^2);  
 
@@ -51,10 +53,16 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, params)
         cost_components.theta   = 0;
     end
 
-    if params.w3~=0
+    if params.w4~=0
         cost_components.smoothing_speed   =  params.w4 *smoothing_speed;
     else 
         cost_components.smoothing_speed   = 0;
+    end
+
+    if params.w5~=0
+        cost_components.tracking_lin_speed   =  params.w5 *tracking_lin_speed;
+    else 
+        cost_components.tracking_lin_speed   = 0;
     end
 
          
@@ -63,6 +71,6 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, params)
         fprintf('cost components: x %f,  y %f, theta : %f smoothing : %f   \n \n',...
                         cost_components.x,cost_components.y,  cost_components.theta,  cost_components.smoothing_speed);
     end
-    cost =  cost_components.x  +  cost_components.y +  cost_components.theta +  cost_components.smoothing_speed;
+    cost =  cost_components.x  +  cost_components.y +  cost_components.theta +  cost_components.smoothing_speed  + cost_components.tracking_lin_speed;
 
 end
