@@ -25,6 +25,8 @@ function [solution] = optimize_cpp_mpc(actual_state, actual_t, local_ref, v_vec0
         % init struct foc C++ code generation
         solution = struct;        
         solution.x = x;
+        solution.v = v;
+        solution.omega = omega;
         solution.cost = final_cost;
         solution.problem_solved = EXITFLAG ;%(EXITFLAG == 1) || (EXITFLAG == 2);
         % 1 First-order optimality measure was less than options.OptimalityTolerance, and maximum constraint violation was less than options.ConstraintTolerance.
