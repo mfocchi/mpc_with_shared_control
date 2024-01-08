@@ -34,7 +34,8 @@ if (DEBUG)
     plot(log_time(2:end),params.v_min*ones(size(log_controls)),'r-');
     plot(log_time(2:end), log_controls(1,:),'ob-') ; hold on; 
     plot(log_time(2:end) , log_human_ref(1,:), 'ok-');
-    ylabel('v')
+    ylabel('v')    
+    legend({'v','human'});
     
     subplot(2,1,2)
     plot(log_time(2:end),params.omega_max*ones(size(log_controls)),'r-'); hold on; grid on;
@@ -42,6 +43,7 @@ if (DEBUG)
     plot(log_time(2:end),log_controls(2,:),'ob-') ; hold on;    
     plot(log_time(2:end) , log_human_ref(2,:), 'ok-');
     ylabel('omega')
+    legend({'omega','human'});
         
 end
 

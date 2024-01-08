@@ -5,14 +5,14 @@ USEGENCODE = true; % need to run gen_cpp_code_mpc
 
 
 % INITIAL STATE (X,Y, THETA)
-p0 = [0.0; 0.0; -0.]; 
+p0 = [0.0; 0.0; 0.]; 
 
 params.model = 'UNICYCLE';
 
 params.obstacle_avoidance = true;
 params.mpc_N = 30;
-params.omega_max = 5.;
-params.omega_min = -5.;
+params.omega_max = 1.;
+params.omega_min = -1.;
 params.v_max = 0.5;
 params.v_min = -0.5;
 params.obstacle_pos = [0.4; 0.07];
@@ -42,7 +42,7 @@ params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
 params.w7= 100; % shared control
 
 [ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
-[ref_pitch, ref_roll] = genHumanInput(-0.2, 0., 1, 2,  2.5, dt, sim_duration/dt);
+[ref_pitch, ref_roll] = genHumanInput(0.05, 0.5, 1, 3,  1., dt, sim_duration/dt);
 
 samples = length(ref_state) - params.mpc_N+1;
 start_mpc = 1;
@@ -65,9 +65,6 @@ if ~isfile('optimize_cpp_mpc_mex.mexa64')
     coder.cstructname(params, 'params');
     codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) , coder.cstructname(params, 'params') } -nargout 1 -report 
 end
-
-
-
 
 %log vectors
 log_state = actual_state;
@@ -189,7 +186,7 @@ for i=start_mpc:samples
     plot(pos(1), pos(2), '.', 'MarkerSize', 50, 'LineWidth', 20);
     %initial orient
     plotOrientation([solution.mpc_states(1,1); solution.mpc_states(2,1)], solution.mpc_states(3,1), 0.02);
-       
+    xlabel
        
     pause(0.3);
     
