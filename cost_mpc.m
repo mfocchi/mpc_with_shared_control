@@ -53,8 +53,8 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref, prev_
     end
      
     Vh = params.ks * (pitch_error )^2 + params.ks* (roll_error)^2;
-    gain = 1-exp(-Vh);    
-    tracking_human_input = gain*(v_vec(1)-local_ref_pitch(1))^2;%+ gain*(omega_vec(1) - local_ref_roll(1))^2; 
+    gain = 1-exp(-Vh);   
+    tracking_human_input = gain*(v_vec(1)-local_ref_pitch(1))^2 + gain*(omega_vec(1) - local_ref_roll(1))^2; 
        
     
     cost_components = struct;
@@ -104,7 +104,10 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref, prev_
     end
          
     if params.DEBUG_COST
-
+        pitch_error
+        Vh
+        gain
+        tracking_human_input
         fprintf('cost components: x %f,  y %f, theta : %f smoothing : %f  lin_speed : %f input : %f  human %f \n \n',...
                         cost_components.x,cost_components.y,  cost_components.theta,  cost_components.smoothing_speed,  ...
                         cost_components.tracking_lin_speed, cost_components.input, cost_components.human);

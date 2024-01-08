@@ -13,8 +13,8 @@ params.obstacle_avoidance = true;
 params.mpc_N = 30;
 params.omega_max = 5.;
 params.omega_min = -5.;
-params.v_max = 1;
-params.v_min = -1;
+params.v_max = 0.5;
+params.v_min = -0.5;
 params.obstacle_pos = [0.4; 0.07];
 params.obstacle_radius = 0.06;
 params.ks =1;
@@ -39,10 +39,10 @@ params.w3= 0.1; % tracking theta
 params.w4= 0.01; % smooth term 
 params.w5= 1; % lin speed term (fundamental to avoid get stuck)
 params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
-params.w7= 0; % shared control
+params.w7= 100; % shared control
 
 [ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
-[ref_pitch, ref_roll] = genHumanInput(0.5, 0., 1, 2,  0.5, dt, sim_duration/dt);
+[ref_pitch, ref_roll] = genHumanInput(-0.2, 0., 1, 2,  2.5, dt, sim_duration/dt);
 
 samples = length(ref_state) - params.mpc_N+1;
 start_mpc = 1;
@@ -67,6 +67,8 @@ if ~isfile('optimize_cpp_mpc_mex.mexa64')
 end
 
 
+
+
 %log vectors
 log_state = actual_state;
 log_controls = [];
@@ -81,6 +83,9 @@ for i=start_mpc:samples
     
     solution = mpc_fun_handler(actual_state, actual_t, local_ref, local_human_ref, prev_controls, v_vec0, omega_vec0, params);
    
+    params.DEBUG_COST = true;    
+    cost_mpc(solution.x, actual_state, actual_t, local_ref, local_human_ref, prev_controls, params);
+      params.DEBUG_COST = false;
     switch solution.problem_solved
         case 1 
             fprintf(2,"Problem converged!\n")
