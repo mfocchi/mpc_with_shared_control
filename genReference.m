@@ -23,7 +23,7 @@ function [ref, time] = generateReference(x0, v_d, omega_d,dT, horizon_length)
         ref = [ref , [x_ref; y_ref;theta_ref ]];
 
    end
- 
+   %append one element cause there are N+1 elements
    time = [1:horizon_length]*dT;
    time = [0 time];
 end
