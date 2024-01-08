@@ -65,12 +65,18 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, params)
         cost_components.tracking_lin_speed   = 0;
     end
 
+    if params.w6~=0
+        cost_components.input   =  params.w6 *input;
+    else 
+        cost_components.input   = 0;
+    end
+    
          
     if params.DEBUG_COST
 
-        fprintf('cost components: x %f,  y %f, theta : %f smoothing : %f   \n \n',...
-                        cost_components.x,cost_components.y,  cost_components.theta,  cost_components.smoothing_speed);
+        fprintf('cost components: x %f,  y %f, theta : %f smoothing : %f  lin_speed : %f input : %f \n \n',...
+                        cost_components.x,cost_components.y,  cost_components.theta,  cost_components.smoothing_speed,  cost_components.tracking_lin_speed, cost_components.input);
     end
-    cost =  cost_components.x  +  cost_components.y +  cost_components.theta +  cost_components.smoothing_speed  + cost_components.tracking_lin_speed;
+    cost =  cost_components.x  +  cost_components.y +  cost_components.theta +  cost_components.smoothing_speed  + cost_components.tracking_lin_speed + cost_components.input;
 
 end

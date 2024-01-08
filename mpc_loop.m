@@ -13,8 +13,8 @@ params.obstacle_avoidance = true;
 params.mpc_N = 30;
 params.omega_max = 5.;
 params.omega_min = -5.;
-params.v_max = 1;
-params.v_min = 0;
+params.v_max = 5;
+params.v_min = -5;
 params.obstacle_pos = [0.4; 0.07];
 params.obstacle_radius = 0.06;
 
@@ -33,10 +33,10 @@ omega_vec0 = zeros(1,params.mpc_N);
 params.int_method = 'rk4';
 params.int_steps = 5.; %0 means normal intergation
 params.w1 =1; % tracking x
-params.w2 =2; % tracking x
+params.w2 =10; % tracking y
 params.w3= 0.1; % tracking theta
 params.w4= 0.01; % smooth term 
-params.w5= 0.1; % lin speed term 
+params.w5= 1; % lin speed term (fundamental to avoid get stuck)
 
 
 [ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
@@ -47,7 +47,7 @@ actual_t = ref_time(start_mpc);
 actual_state = p0;
 
 %ADD NOISE ON state
-actual_state = actual_state +[0.05;0.1; 0.1]; %make the disturbance suvh that the robot is pulling
+actual_state = actual_state ;%+[0.05;0.1; 0.1]; %make the disturbance suvh that the robot is pulling
   
 mpc_fun   = 'optimize_cpp_mpc';
 if USEGENCODE
@@ -151,11 +151,34 @@ for i=start_mpc:samples
     plot(solution.mpc_time, ones(1,length(solution.mpc_time))*(params.omega_max), 'r'); grid on;hold on;  
     legend({'omega','min', 'max'});
 
+    
+    subplot(3,2,6)   
+    %initial REFERENCE
+    plot(p0(1), p0(2) , 'Marker', '.', 'Color','g', 'MarkerSize',60) ; hold on; grid on;
+    %initial ACTUAL
+    plot(solution.mpc_states(1,1),  solution.mpc_states(2,1), 'bo-' , 'Marker', '.', 'Color','g', 'MarkerSize',60) ; hold on;
+
+    % plot ref trajectory
+    plot(ref_state(1,:), ref_state(2,:), 'ro-',   'LineWidth', 1.0,'MarkerSize',4);
+
+    % plot actual trajectory
+    plot(solution.mpc_states(1,:), solution.mpc_states(2,:), 'bo-',   'LineWidth', 1.0,'MarkerSize',4);
+
+    % plot obstacle
+    pos = params.obstacle_pos;
+    r = params.obstacle_radius;
+    th = linspace(0,2*pi*100);
+    x = cos(th) ; y = sin(th) ;
+    plot(pos(1) + r*x, pos(2) + r*y, 'Color', [0.8500, 0.3250, 0.0980], 'LineWidth', 2);hold on;
+    plot(pos(1), pos(2), '.', 'MarkerSize', 50, 'LineWidth', 20);
+    %initial orient
+    plotOrientation([solution.mpc_states(1,1); solution.mpc_states(2,1)], solution.mpc_states(3,1), 0.02);
+       
        
     pause(0.3);
     
      
 end
 
-plot_solution(log_time, log_state, ref_time, ref_state, log_controls, p0, params, false);
+plot_solution(log_time, log_state, ref_time, ref_state, log_controls, p0, params, true);
 
