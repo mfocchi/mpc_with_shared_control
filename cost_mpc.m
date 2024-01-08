@@ -28,7 +28,7 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, params)
 
     % smoothnes: minimize jerky control action
     smoothing_speed = sum(diff(v_vec).^2)+ sum(diff(omega_vec).^2);  
-
+    effort = sum((v_vec).^2)+ sum((omega_vec).^2);  
 
     
     cost_components = struct;
@@ -66,7 +66,7 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, params)
     end
 
     if params.w6~=0
-        cost_components.input   =  params.w6 *input;
+        cost_components.input   =  params.w6 *effort;
     else 
         cost_components.input   = 0;
     end

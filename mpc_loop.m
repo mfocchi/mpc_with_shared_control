@@ -37,6 +37,7 @@ params.w2 =10; % tracking y
 params.w3= 0.1; % tracking theta
 params.w4= 0.01; % smooth term 
 params.w5= 1; % lin speed term (fundamental to avoid get stuck)
+params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
 
 
 [ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
