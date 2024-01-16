@@ -44,7 +44,7 @@ params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
 params.w7= 100; % shared control weight
 
 [ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
-[ref_pitch, ref_roll] = genHumanInput(-0.05, 0.7, 1, 3,  1., dt, sim_duration/dt);
+[ref_pitch, ref_roll] = genHumanInput(-0.05, -0.7, 1, 3,  1., dt, sim_duration/dt);
 
 samples = length(ref_state) - params.mpc_N+1;
 start_mpc = 1;
@@ -81,8 +81,10 @@ for i=start_mpc:samples
     local_human_ref = [ref_pitch(:,i:i+params.mpc_N-1); ref_roll(:,i:i+params.mpc_N-1)];
     fprintf("Iteration #: %d\n", i)
     
+    tic
     solution = mpc_fun_handler(actual_state, actual_t, local_ref, local_human_ref, prev_controls, v_vec0, omega_vec0, params);
-   
+    toc
+    
     %plot cost
     params.DEBUG_COST = true;    
     cost_mpc(solution.x, actual_state, actual_t, local_ref, local_human_ref, prev_controls, params);
