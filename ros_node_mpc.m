@@ -1,0 +1,100 @@
+clear all;
+global params
+addpath('/home/mfocchi/matlab/MPC_optimization/matlab_msg_gen_ros1/glnxa64/install/m')
+rosshutdown
+rosinit
+
+masterHost = 'localhost';
+node_1 = ros.Node('node_1', masterHost);
+node_2 = ros.Node('node_2', masterHost);
+
+
+params.model = 'UNICYCLE';
+params.obstacle_avoidance = true;
+params.mpc_N = 30;
+params.omega_max = 1.;
+params.omega_min = -1.;
+params.v_max = 0.5;
+params.v_min = -0.5;
+params.obstacle_pos = [0.4; 0.07];
+params.obstacle_radius = 0.06;
+params.ks =5;
+params.DEBUG_COST = false;
+params.mpc_dt = 0.1;
+constr_tolerance = 1e-3;
+dt=0.1; 
+% desired surge speed /ang velocity
+params.v_d = 0.1;
+params.omega_d= 0.1;
+sim_duration = 10;
+v_vec0 = zeros(1,params.mpc_N);
+omega_vec0 = zeros(1,params.mpc_N);
+params.int_method = 'rk4';
+params.int_steps = 5.; %0 means normal integration
+params.w1 =1; % tracking x
+params.w2 =10; % tracking y
+params.w3= 0.1; % tracking theta
+params.w4= 0.01; % smooth term 
+params.w5= 1; % lin speed term (fundamental to avoid get stuck)
+params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
+params.w7= 100; % shared control weight
+
+%genDir = fullfile(pwd,'customMessages');
+%gen messages
+%rosgenmsg
+%rehash toolboxcache
+server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','struct');
+                  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%client
+p0 = [0.0; 0.0; 0.]; 
+[ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
+[ref_pitch, ref_roll] = genHumanInput(-0.05, -0.7, 1, 3,  1., dt, sim_duration/dt);
+
+samples = length(ref_state) - params.mpc_N+1;
+start_mpc = 1;
+actual_t = ref_time(start_mpc);
+actual_state = p0;
+
+%log vectors
+log_state = actual_state;
+log_controls = [];
+log_human_ref = [];
+log_time = 0;
+prev_controls = [v_vec0;omega_vec0];
+    
+local_ref = ref_state(:,1:1+params.mpc_N-1);  
+local_human_ref = [ref_pitch(:,1:1+params.mpc_N-1); ref_roll(:,1:1+params.mpc_N-1)];
+
+mpcclient = rossvcclient("/mpc","DataFormat","struct")
+mpcreq = rosmessage(mpcclient);
+%msg = rosmessage('geometry_msgs/Vector3')
+%msg = rosmessage( 'std_msgs/Float32MultiArray')
+%rosmsg show std_msgs/Float64
+
+mpcreq.ActualState.X = actual_state(1);
+mpcreq.ActualState.Y = actual_state(2);
+mpcreq.ActualState.Z = actual_state(3);
+singleMsg = rosmessage( 'std_msgs/Float64',"DataFormat","struct");
+poseMsg = rosmessage("geometry_msgs/Vector3","DataFormat","struct");
+for k = 1:params.mpc_N
+    poseMsg.X = local_ref(1,k);
+    poseMsg.Y = local_ref(2,k);
+    poseMsg.Z = local_ref(3,k);
+    mpcreq.LocalRef(k) = poseMsg;  
+end
+singleMsg.Data = actual_t;
+mpcreq.ActualTime = singleMsg;
+
+%display message content
+%rosShowDetails(mpcreq)
+if isServerAvailable(mpcclient)
+    mpcresp = call(mpcclient,mpcreq, "Timeout",3)
+else
+    error("Service server not available on network")
+end
+
+mpcresp.LinVel.Data
+mpcresp.AngVel.Data
+
+                  
