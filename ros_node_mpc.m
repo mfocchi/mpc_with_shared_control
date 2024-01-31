@@ -12,12 +12,14 @@ node_2 = ros.Node('node_2', masterHost);
 params.model = 'UNICYCLE';
 params.obstacle_avoidance = true;
 params.mpc_N = 30;
+%store it into param server for the husky
+rosparam("set","mpc_N",int32(params.mpc_N));
 params.omega_max = 1.;
 params.omega_min = -1.;
 params.v_max = 0.5;
 params.v_min = -0.5;
-params.obstacle_pos = [0.4; 0.07];
-params.obstacle_radius = 0.06;
+obstacle_pos = [0.4; 0.07];
+params.obstacle_radius = 0.6;
 params.ks =5;
 params.DEBUG_COST = false;
 params.mpc_dt = 0.1;
@@ -42,6 +44,7 @@ params.w7= 100; % shared control weight
 %genDir = fullfile(pwd,'customMessages');
 %gen messages
 %rosgenmsg
+%clear classes
 %rehash toolboxcache
 server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','struct');
                   
@@ -49,7 +52,7 @@ server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','s
 %client
 p0 = [0.0; 0.0; 0.]; 
 [ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
-[ref_pitch, ref_roll] = genHumanInput(-0.05, -0.7, 1, 3,  1., dt, sim_duration/dt);
+[ref_pitch, ref_roll] = genHumanInput(0.05, -0.7, 1, 3,  1., dt, sim_duration/dt);
 
 samples = length(ref_state) - params.mpc_N+1;
 start_mpc = 1;
@@ -75,6 +78,7 @@ mpcreq = rosmessage(mpcclient);
 mpcreq.ActualState.X = actual_state(1);
 mpcreq.ActualState.Y = actual_state(2);
 mpcreq.ActualState.Z = actual_state(3);
+
 singleMsg = rosmessage( 'std_msgs/Float64',"DataFormat","struct");
 poseMsg = rosmessage("geometry_msgs/Vector3","DataFormat","struct");
 for k = 1:params.mpc_N
@@ -85,6 +89,14 @@ for k = 1:params.mpc_N
 end
 singleMsg.Data = actual_t;
 mpcreq.ActualTime = singleMsg;
+singleMsg.Data = local_human_ref(1,1);
+mpcreq.Roll = singleMsg;
+singleMsg.Data = local_human_ref(2,1);
+mpcreq.Pitch = singleMsg;
+
+mpcreq.ObstaclePos.X = obstacle_pos(1);
+mpcreq.ObstaclePos.Y = obstacle_pos(2);
+
 
 %display message content
 %rosShowDetails(mpcreq)

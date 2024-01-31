@@ -1,6 +1,6 @@
 
 
-function [solution] = optimize_cpp_mpc(actual_state, actual_t, local_ref, local_human_ref, prev_controls,  v_vec0, omega_vec0,  params)
+function [solution] = optimize_cpp_mpc(actual_state, actual_t, obstacle_pos_x, obstacle_pos_y, local_ref, local_human_ref, prev_controls,  v_vec0, omega_vec0,  params)
 
         constr_tolerance = 1e-3;
 
@@ -10,7 +10,7 @@ function [solution] = optimize_cpp_mpc(actual_state, actual_t, local_ref, local_
         ub = [ params.v_max*ones(1,params.mpc_N),  params.omega_max*ones(1,params.mpc_N)];
         options = optimoptions('fmincon','Display','none','Algorithm','sqp',  ... % does not always satisfy bounds
         'MaxFunctionEvaluations', 10000, 'ConstraintTolerance',constr_tolerance);
-        [x, final_cost, EXITFLAG, output] = fmincon(@(x) cost_mpc(x, actual_state, actual_t, local_ref, local_human_ref, prev_controls, params),  x0,[],[],[],[],lb,ub, @(x) constraints_mpc(x, actual_state,  actual_t, params), options);
+        [x, final_cost, EXITFLAG, output] = fmincon(@(x) cost_mpc(x, actual_state, actual_t, local_ref, local_human_ref, prev_controls, params),  x0,[],[],[],[],lb,ub, @(x) constraints_mpc(x, actual_state,  actual_t,obstacle_pos_x, obstacle_pos_y, params), options);
        
         
         % predict new state vector with the optimal v, omega profiles
@@ -20,7 +20,7 @@ function [solution] = optimize_cpp_mpc(actual_state, actual_t, local_ref, local_
 
                
         % evaluate constraint violation 
-        [c ceq] = constraints_mpc(x, actual_state,  actual_t, params);
+        [c ceq] = constraints_mpc(x, actual_state,  actual_t,obstacle_pos_x, obstacle_pos_y, params);
      
         % init struct foc C++ code generation
         solution = struct;        
