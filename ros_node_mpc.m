@@ -16,13 +16,13 @@ params.mpc_N = 30;
 rosparam("set","mpc_N",int32(params.mpc_N));
 params.omega_max = 1.;
 params.omega_min = -1.;
-params.v_max = 0.5;
-params.v_min = -0.5;
+params.v_max = 2;
+params.v_min = -2;
 obstacle_pos = [0.4; 0.07];
 params.obstacle_radius = 0.6;
 params.ks =5;
 params.DEBUG_COST = false;
-params.mpc_dt = 0.1;
+params.mpc_dt = 1/10;
 constr_tolerance = 1e-3;
 dt=0.1; 
 % desired surge speed /ang velocity
@@ -50,63 +50,63 @@ server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','s
                   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %client
-p0 = [0.0; 0.0; 0.]; 
-[ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
-[ref_pitch, ref_roll] = genHumanInput(0.05, -0.7, 1, 3,  1., dt, sim_duration/dt);
-
-samples = length(ref_state) - params.mpc_N+1;
-start_mpc = 1;
-actual_t = ref_time(start_mpc);
-actual_state = p0;
-
-%log vectors
-log_state = actual_state;
-log_controls = [];
-log_human_ref = [];
-log_time = 0;
-prev_controls = [v_vec0;omega_vec0];
-    
-local_ref = ref_state(:,1:1+params.mpc_N-1);  
-local_human_ref = [ref_pitch(:,1:1+params.mpc_N-1); ref_roll(:,1:1+params.mpc_N-1)];
-
-mpcclient = rossvcclient("/mpc","DataFormat","struct")
-mpcreq = rosmessage(mpcclient);
-%msg = rosmessage('geometry_msgs/Vector3')
-%msg = rosmessage( 'std_msgs/Float32MultiArray')
-%rosmsg show std_msgs/Float64
-
-mpcreq.ActualState.X = actual_state(1);
-mpcreq.ActualState.Y = actual_state(2);
-mpcreq.ActualState.Z = actual_state(3);
-
-singleMsg = rosmessage( 'std_msgs/Float64',"DataFormat","struct");
-poseMsg = rosmessage("geometry_msgs/Vector3","DataFormat","struct");
-for k = 1:params.mpc_N
-    poseMsg.X = local_ref(1,k);
-    poseMsg.Y = local_ref(2,k);
-    poseMsg.Z = local_ref(3,k);
-    mpcreq.LocalRef(k) = poseMsg;  
-end
-singleMsg.Data = actual_t;
-mpcreq.ActualTime = singleMsg;
-singleMsg.Data = local_human_ref(1,1);
-mpcreq.Roll = singleMsg;
-singleMsg.Data = local_human_ref(2,1);
-mpcreq.Pitch = singleMsg;
-
-mpcreq.ObstaclePos.X = obstacle_pos(1);
-mpcreq.ObstaclePos.Y = obstacle_pos(2);
-
-
-%display message content
-%rosShowDetails(mpcreq)
-if isServerAvailable(mpcclient)
-    mpcresp = call(mpcclient,mpcreq, "Timeout",3)
-else
-    error("Service server not available on network")
-end
-
-mpcresp.LinVel.Data
-mpcresp.AngVel.Data
-
-                  
+% p0 = [0.0; 0.0; 0.]; 
+% [ref_state,ref_time]  = genReference(p0, params.v_d, params.omega_d, dt, sim_duration/dt);
+% [ref_pitch, ref_roll] = genHumanInput(0.05, -0.7, 1, 3,  1., dt, sim_duration/dt);
+% 
+% samples = length(ref_state) - params.mpc_N+1;
+% start_mpc = 1;
+% actual_t = ref_time(start_mpc);
+% actual_state = p0;
+% 
+% %log vectors
+% log_state = actual_state;
+% log_controls = [];
+% log_human_ref = [];
+% log_time = 0;
+% prev_controls = [v_vec0;omega_vec0];
+% 
+% local_ref = ref_state(:,1:1+params.mpc_N-1);  
+% local_human_ref = [ref_pitch(:,1:1+params.mpc_N-1); ref_roll(:,1:1+params.mpc_N-1)];
+% 
+% mpcclient = rossvcclient("/mpc","DataFormat","struct")
+% mpcreq = rosmessage(mpcclient);
+% %msg = rosmessage('geometry_msgs/Vector3')
+% %msg = rosmessage( 'std_msgs/Float32MultiArray')
+% %rosmsg show std_msgs/Float64
+% 
+% mpcreq.ActualState.X = actual_state(1);
+% mpcreq.ActualState.Y = actual_state(2);
+% mpcreq.ActualState.Z = actual_state(3);
+% 
+% singleMsg = rosmessage( 'std_msgs/Float64',"DataFormat","struct");
+% poseMsg = rosmessage("geometry_msgs/Vector3","DataFormat","struct");
+% for k = 1:params.mpc_N
+%     poseMsg.X = local_ref(1,k);
+%     poseMsg.Y = local_ref(2,k);
+%     poseMsg.Z = local_ref(3,k);
+%     mpcreq.LocalRef(k) = poseMsg;  
+% end
+% singleMsg.Data = actual_t;
+% mpcreq.ActualTime = singleMsg;
+% singleMsg.Data = local_human_ref(1,1);
+% mpcreq.Roll = singleMsg;
+% singleMsg.Data = local_human_ref(2,1);
+% mpcreq.Pitch = singleMsg;
+% 
+% mpcreq.ObstaclePos.X = obstacle_pos(1);
+% mpcreq.ObstaclePos.Y = obstacle_pos(2);
+% 
+% 
+% %display message content
+% %rosShowDetails(mpcreq)
+% if isServerAvailable(mpcclient)
+%     mpcresp = call(mpcclient,mpcreq, "Timeout",3)
+% else
+%     error("Service server not available on network")
+% end
+% 
+% mpcresp.LinVel.Data
+% mpcresp.AngVel.Data
+% 
+% 

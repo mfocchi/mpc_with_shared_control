@@ -1,6 +1,6 @@
 function resp = MPCcallback(~,req,resp)
 global params
-disp('A service client is calling');
+%disp('A service client is calling');
 actual_state(1) = req.ActualState.X ; 
 actual_state(2) = req.ActualState.Y ;
 actual_state(3) = req.ActualState.Z ;
@@ -19,6 +19,10 @@ local_human_ref = [req.Pitch.Data*ones(1,params.mpc_N); req.Roll.Data*ones(1,par
 
 obstacle_pos(1) = req.ObstaclePos.X ; 
 obstacle_pos(2) = req.ObstaclePos.Y ; 
+
+%debug 
+% actual_state
+% local_ref(:,1)'
 
 solution = optimize_cpp_mpc_mex(actual_state(:), actual_t, obstacle_pos(1), obstacle_pos(2), local_ref, local_human_ref, prev_controls, v_vec0, omega_vec0, params);
 resp.LinVel.Data = solution.v(1);
