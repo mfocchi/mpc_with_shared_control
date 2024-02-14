@@ -1,6 +1,8 @@
 clear all;
 global params
 addpath('/home/mfocchi/matlab/MPC_optimization/matlab_msg_gen_ros1/glnxa64/install/m')
+pyenv
+
 rosshutdown
 rosinit
 
@@ -11,7 +13,7 @@ node_2 = ros.Node('node_2', masterHost);
 
 params.model = 'UNICYCLE';
 params.obstacle_avoidance = true;
-params.mpc_N = 30;
+params.mpc_N = 20; %better
 %store it into param server for the husky
 rosparam("set","mpc_N",int32(params.mpc_N));
 params.omega_max = 1.;
@@ -22,7 +24,7 @@ obstacle_pos = [0.4; 0.07];
 params.obstacle_radius = 0.6;
 params.ks =5;
 params.DEBUG_COST = false;
-params.mpc_dt = 1/10;
+params.mpc_dt = 0.1;
 constr_tolerance = 1e-3;
 dt=0.1; 
 % desired surge speed /ang velocity
@@ -40,12 +42,21 @@ params.w4= 0.01; % smooth term
 params.w5= 1; % lin speed term (fundamental to avoid get stuck)
 params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
 params.w7= 100; % shared control weight
-
+% gen messages (only once)
 %genDir = fullfile(pwd,'customMessages');
 %gen messages
 %rosgenmsg
 %clear classes
 %rehash toolboxcache
+
+%gen code (run if you did some change in the cost)
+if ~isfile('optimize_cpp_mpc_mex.mexa64')
+    disp('Generating C++ code');
+    cfg = coder.config('mex');  
+    coder.cstructname(params, 'params');
+    codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0, 0, 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) , coder.cstructname(params, 'params') } -nargout 1 -report 
+end
+
 server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','struct');
                   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
