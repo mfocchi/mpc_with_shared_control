@@ -54,7 +54,7 @@ if ~isfile('optimize_cpp_mpc_mex.mexa64')
     disp('Generating C++ code');
     cfg = coder.config('mex');  
     coder.cstructname(params, 'params');
-    codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0, 0, 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) , coder.cstructname(params, 'params') } -nargout 1 -report 
+    codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0, 0, 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) , coder.cstructname(params, 'params') } -nargout 1 -report 
 end
 
 server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','struct');
@@ -75,7 +75,7 @@ server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','s
 % log_controls = [];
 % log_human_ref = [];
 % log_time = 0;
-% prev_controls = [v_vec0;omega_vec0];
+% 
 % 
 % local_ref = ref_state(:,1:1+params.mpc_N-1);  
 % local_human_ref = [ref_pitch(:,1:1+params.mpc_N-1); ref_roll(:,1:1+params.mpc_N-1)];
@@ -112,7 +112,9 @@ server = rossvcserver('/mpc', 'customMessages/mpc', @MPCcallback,'DataFormat','s
 % %display message content
 % %rosShowDetails(mpcreq)
 % if isServerAvailable(mpcclient)
+%     tic
 %     mpcresp = call(mpcclient,mpcreq, "Timeout",3)
+%     toc
 % else
 %     error("Service server not available on network")
 % end

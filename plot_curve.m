@@ -1,4 +1,4 @@
-function  plot_curve(log_state, ref_state, p0, params, DEBUG)
+function  plot_curve(log_state, ref_state, p0, obstacle_pos, params, DEBUG)
 
 %initial REF
 plot(p0(1), p0(2) , 'Marker', '.', 'Color','g', 'MarkerSize',60) ; hold on;
@@ -16,12 +16,11 @@ plot(log_state(1,:), log_state(2,:), 'ko-',...
     'LineWidth', 1.0,'MarkerSize',4);
 
 % plot obstacle
-pos = params.obstacle_pos;
 r = params.obstacle_radius;
 th = linspace(0,2*pi*100);
 x = cos(th) ; y = sin(th) ;
-plot(pos(1) + r*x, pos(2) + r*y, 'Color', [0.8500, 0.3250, 0.0980], 'LineWidth', 2);hold on;
-plot(pos(1), pos(2), '.', 'MarkerSize', 50, 'LineWidth', 20);
+plot(obstacle_pos(1) + r*x, obstacle_pos(2) + r*y, 'Color', [0.8500, 0.3250, 0.0980], 'LineWidth', 2);hold on;
+plot(obstacle_pos(1), obstacle_pos(2), '.', 'MarkerSize', 50, 'LineWidth', 20);
 
 %limits
 % min_x = min(solution.mpc_states(1,:)) ;

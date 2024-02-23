@@ -1,4 +1,4 @@
-function plot_solution(log_time, log_state, ref_time, ref_state, log_controls, log_human_ref,  p0, params, DEBUG)
+function plot_solution(log_time, log_state, ref_time, ref_state, log_controls, log_human_ref,  p0, obstacle_pos, params, DEBUG)
 
  if nargin < 7
     DEBUG=false;
@@ -48,7 +48,7 @@ if (DEBUG)
 end
 
 figure;
-plot_curve(log_state, ref_state, p0,  params, DEBUG)
+plot_curve(log_state, ref_state, p0, obstacle_pos, params, DEBUG)
 shg
 
 end

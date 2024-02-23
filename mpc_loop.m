@@ -65,7 +65,7 @@ if ~isfile('optimize_cpp_mpc_mex.mexa64')
     disp('Generating C++ code');
     cfg = coder.config('mex');  
     coder.cstructname(params, 'params');
-    codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0, 0, 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) , coder.cstructname(params, 'params') } -nargout 1 -report 
+    codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0, 0, 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) , coder.cstructname(params, 'params') } -nargout 1 -report 
 end
 
 %log vectors
@@ -73,7 +73,6 @@ log_state = actual_state;
 log_controls = [];
 log_human_ref = [];
 log_time = 0;
-prev_controls = [v_vec0;omega_vec0];
 
 for i=start_mpc:samples
     
@@ -82,12 +81,12 @@ for i=start_mpc:samples
     fprintf("Iteration #: %d\n", i)
     
     tic
-    solution = mpc_fun_handler(actual_state, actual_t, obstacle_pos(1), obstacle_pos(2), local_ref, local_human_ref, prev_controls, v_vec0, omega_vec0, params);
+    solution = mpc_fun_handler(actual_state, actual_t, obstacle_pos(1), obstacle_pos(2), local_ref, local_human_ref,  v_vec0, omega_vec0, params);
     toc
     
     %plot cost
     params.DEBUG_COST = true;    
-    cost_mpc(solution.x, actual_state, actual_t, local_ref, local_human_ref, prev_controls, params);
+    cost_mpc(solution.x, actual_state, actual_t, local_ref, local_human_ref,  params);
     params.DEBUG_COST = false;
     
     switch solution.problem_solved
@@ -121,7 +120,9 @@ for i=start_mpc:samples
     
     v = solution.x(1:params.mpc_N);
     omega = solution.x(params.mpc_N+1:2*params.mpc_N);
-    prev_controls = [v; omega];    
+    %for RTI pad with zeros
+    v_vec0 = [v(2:end) v(end)];
+    omega_vec0 = [omega(2:end) omega(end)];
 
     %update dynamics (this emulates the real dynamics with noise)
     [actual_state, actual_t] = integrate_dynamics(actual_state ,actual_t, params.mpc_dt/(params.int_steps-1), params.int_steps, v(1)*ones(1,params.int_steps),  omega(1)*ones(1,params.int_steps), params); 
@@ -194,10 +195,10 @@ for i=start_mpc:samples
     plotOrientation([solution.mpc_states(1,1); solution.mpc_states(2,1)], solution.mpc_states(3,1), 0.02);
     xlabel('x'); ylabel('Y');
        
-    pause(0.4);
+    pause(0.2);
     
      
 end
 
-plot_solution(log_time, log_state, ref_time, ref_state, log_controls, log_human_ref, p0, params, true);
+plot_solution(log_time, log_state, ref_time, ref_state, log_controls, log_human_ref, p0, obstacle_pos, params, true);
 

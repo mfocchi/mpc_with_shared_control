@@ -1,6 +1,6 @@
 
 
-function [solution] = optimize_cpp_mpc(actual_state, actual_t, obstacle_pos_x, obstacle_pos_y, local_ref, local_human_ref, prev_controls,  v_vec0, omega_vec0,  params)
+function [solution] = optimize_cpp_mpc(actual_state, actual_t, obstacle_pos_x, obstacle_pos_y, local_ref, local_human_ref,  v_vec0, omega_vec0,  params)
 
         constr_tolerance = 1e-3;
 
@@ -8,9 +8,15 @@ function [solution] = optimize_cpp_mpc(actual_state, actual_t, obstacle_pos_x, o
 
         lb = [ params.v_min*ones(1,params.mpc_N),  params.omega_min*ones(1,params.mpc_N)];
         ub = [ params.v_max*ones(1,params.mpc_N),  params.omega_max*ones(1,params.mpc_N)];
+
+        %%NON real time iteration
         options = optimoptions('fmincon','Display','none','Algorithm','sqp',  ... % does not always satisfy bounds
         'MaxFunctionEvaluations', 10000, 'ConstraintTolerance',constr_tolerance);
-        [x, final_cost, EXITFLAG, output] = fmincon(@(x) cost_mpc(x, actual_state, actual_t, local_ref, local_human_ref, prev_controls, params),  x0,[],[],[],[],lb,ub, @(x) constraints_mpc(x, actual_state,  actual_t,obstacle_pos_x, obstacle_pos_y, params), options);
+        % real time iteration
+        %options = optimoptions('fmincon','Display','none','Algorithm','sqp',  ... % does not always satisfy bounds
+        % 'MaxFunctionEvaluations', 10000, 'ConstraintTolerance',constr_tolerance,  'MaxIterations', 3);
+        
+        [x, final_cost, EXITFLAG, output] = fmincon(@(x) cost_mpc(x, actual_state, actual_t, local_ref, local_human_ref,  params),  x0,[],[],[],[],lb,ub, @(x) constraints_mpc(x, actual_state,  actual_t,obstacle_pos_x, obstacle_pos_y, params), options);
        
         
         % predict new state vector with the optimal v, omega profiles

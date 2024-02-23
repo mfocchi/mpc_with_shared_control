@@ -1,4 +1,4 @@
-function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref, prev_controls, params)
+function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref,  params)
 
     local_ref_pitch = local_human_ref(1,:);
     local_ref_roll = local_human_ref(2,:);
