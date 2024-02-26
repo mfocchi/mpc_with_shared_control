@@ -3,6 +3,8 @@ geometry_msgs/Vector3[] local_ref
 std_msgs/Float64 actual_time
 std_msgs/Float64 pitch
 std_msgs/Float64 roll
+std_msgs/Float64 des_v
+std_msgs/Float64 des_omega
 geometry_msgs/Vector3 obstacle_pos
 ---
 std_msgs/Float64 lin_vel

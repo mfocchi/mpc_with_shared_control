@@ -1,4 +1,4 @@
-function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref,  params)
+function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref, des_v, des_omega, params)
 
     local_ref_pitch = local_human_ref(1,:);
     local_ref_roll = local_human_ref(2,:);
@@ -41,12 +41,12 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref,  para
     %roll_error = local_ref_roll(1) - prev_omega; 
     
     if local_ref_pitch(1) ~=0 
-        pitch_error = local_ref_pitch(1) - params.v_d;
+        pitch_error = local_ref_pitch(1) - des_v;
     else 
         pitch_error = 0;
     end
     if local_ref_roll(1) ~=0 
-        roll_error = local_ref_roll(1) -  params.omega_d;
+        roll_error = local_ref_roll(1) -  des_omega;
     else 
         roll_error = 0;
     end
