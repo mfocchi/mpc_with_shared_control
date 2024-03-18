@@ -65,7 +65,7 @@ if ~isfile('optimize_cpp_mpc_mex.mexa64')
     disp('Generating C++ code');
     cfg = coder.config('mex');  
     coder.cstructname(params, 'params');
-    codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0, 0, 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) , coder.cstructname(params, 'params') } -nargout 1 -report 
+    codegen -config cfg  optimize_cpp_mpc -args { zeros(3,1), 0, 0, 0,  coder.typeof(1,[3 Inf]),coder.typeof(1,[2 Inf]), coder.typeof(1,[1 Inf]), coder.typeof(1,[1 Inf]) ,0,0, coder.cstructname(params, 'params') } -nargout 1 -report 
 end
 
 %log vectors
@@ -79,14 +79,14 @@ for i=start_mpc:samples
     local_ref = ref_state(:,i:i+params.mpc_N-1);  
     local_human_ref = [ref_pitch(:,i:i+params.mpc_N-1); ref_roll(:,i:i+params.mpc_N-1)];
     fprintf("Iteration #: %d\n", i)
-    
+
     tic
-    solution = mpc_fun_handler(actual_state, actual_t, obstacle_pos(1), obstacle_pos(2), local_ref, local_human_ref,  v_vec0, omega_vec0, params);
+    solution = mpc_fun_handler(actual_state, actual_t, obstacle_pos(1), obstacle_pos(2), local_ref, local_human_ref,  v_vec0, omega_vec0, params.v_d, params.omega_d, params);
     toc
     
     %plot cost
     params.DEBUG_COST = true;    
-    cost_mpc(solution.x, actual_state, actual_t, local_ref, local_human_ref,  params);
+    cost_mpc(solution.x, actual_state, actual_t, local_ref, local_human_ref,  params.v_d, params.omega_d, params);
     params.DEBUG_COST = false;
     
     switch solution.problem_solved
@@ -145,13 +145,13 @@ for i=start_mpc:samples
     plot(ref_time(start_mpc:end), ref_state(1, start_mpc:end), 'ro-'); grid on;hold on;
     plot(solution.mpc_time, solution.mpc_states(1,:), 'bo-'); grid on;hold on; ylabel('X')
     plot(ref_time(i), ref_state(1, i), 'k.','MarkerSize', 20);
-    ylim([0, max(ref_state(1,:))]);
+    ylim([min(ref_state(1,:)), max(ref_state(1,:))]);
     
     subplot(3,2,3)       
     plot(ref_time(start_mpc:end), ref_state(2, start_mpc:end), 'ro-'); grid on;hold on;
     plot(solution.mpc_time, solution.mpc_states(2,:), 'bo-'); grid on;hold on; ylabel('Y')
     plot(ref_time(i), ref_state(2, i), 'k.', 'MarkerSize', 20);
-    ylim([0, max(ref_state(2,:))]);
+    ylim([min(ref_state(2,:)), max(ref_state(2,:))]);
     
     subplot(3,2,5)   
     plot(ref_time(start_mpc:end), ref_state(3, start_mpc:end), 'ro-'); grid on;hold on;
