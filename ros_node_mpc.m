@@ -13,7 +13,7 @@ node_2 = ros.Node('node_2', masterHost);
 
 params.model = 'UNICYCLE';
 params.obstacle_avoidance = true;
-params.mpc_N = 20; %better
+params.mpc_N = 15; %better
 %store it into param server for the husky
 rosparam("set","mpc_N",int32(params.mpc_N));
 params.omega_max = 1.;
@@ -35,13 +35,13 @@ v_vec0 = zeros(1,params.mpc_N);
 omega_vec0 = zeros(1,params.mpc_N);
 params.int_method = 'rk4';
 params.int_steps = 5.; %0 means normal integration
-params.w1 =1; % tracking x
-params.w2 =10; % tracking y
-params.w3= 0.1; % tracking theta
+params.w1 =10; % tracking x
+params.w2 =5; % tracking y
+params.w3= 10; % tracking theta
 params.w4= 0.01; % smooth term 
 params.w5= 1; % lin speed term (fundamental to avoid get stuck)
 params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
-params.w7= 100; % shared control weight
+params.w7= 0; % shared control weight
 % gen messages (only once)
 %genDir = fullfile(pwd,'customMessages');
 %%%%gen messages
