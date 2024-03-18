@@ -25,8 +25,13 @@ function cost = cost_mpc(x, state0,  actual_t, local_ref, local_human_ref, des_v
     % cartesian track
     norm_order = 2;
     tracking_x= sum (vecnorm(local_ref(1,:)- states(1,:), norm_order).^2);    
-    tracking_y= sum (vecnorm(local_ref(2,:)- states(2,:), norm_order).^2);    
-    tracking_theta= sum (vecnorm(local_ref(3,:) - states(3,:), norm_order).^2); 
+    tracking_y= sum (vecnorm(local_ref(2,:)- states(2,:), norm_order).^2);
+    % better use angdiff than unwrap
+    % theta = unwrap(states(3,:));
+    % theta_ref = unwrap(local_ref(3,:));
+
+    tracking_theta= sum (vecnorm(angdiff(states(3,:), local_ref(3,:)), norm_order).^2); 
+
     tracking_lin_speed= sum ( vecnorm( params.v_d*ones(1,params.mpc_N) -  v_vec, norm_order).^2 ); 
    
     % smoothnes: minimize jerky control action
