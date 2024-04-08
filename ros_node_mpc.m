@@ -12,7 +12,7 @@ node_2 = ros.Node('node_2', masterHost);
 
 
 params.model = 'UNICYCLE';
-params.obstacle_avoidance = true;
+params.obstacle_avoidance = false; %to run with obstacle avoidance you need to slow down RT in gazebo to 200 Hz and set params.w3 = 0.1
 params.mpc_N = 15; %better
 %store it into param server for the husky
 rosparam("set","mpc_N",int32(params.mpc_N));
@@ -40,8 +40,8 @@ params.w2 =5; % tracking y
 params.w3= 10; % tracking theta
 params.w4= 0.01; % smooth term 
 params.w5= 1; % lin speed term (fundamental to avoid get stuck)
-params.w6= 1e-05; % lin speed term (fundamental to avoid get stuck)
-params.w7= 0; % shared control weight
+params.w6= 1e-05; % effort
+params.w7= 0; % human input shared control weight
 % gen messages (only once)
 %genDir = fullfile(pwd,'customMessages');
 %%%%gen messages
